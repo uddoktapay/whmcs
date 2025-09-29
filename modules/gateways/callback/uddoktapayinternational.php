@@ -252,7 +252,7 @@ class UddoktaPayInternational
         $fields = [
             "full_name" => $customerName,
             "email" => $email,
-            "amount" => $this->total,
+            "amount" => round($this->total, 2),
             "metadata" => [
                 'invoice_id' => $this->invoice['invoiceid']
             ],
