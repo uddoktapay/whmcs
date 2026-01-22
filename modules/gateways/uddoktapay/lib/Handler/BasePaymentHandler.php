@@ -60,7 +60,7 @@ abstract class BasePaymentHandler
         $fields = [
             'full_name' => trim($this->clientDetails->firstname . ' ' . $this->clientDetails->lastname),
             'email' => $this->clientDetails->email,
-            'phone' => $this->clientDetails->phonenumber,
+            'phone' => $this->formatPhoneNumber($this->clientDetails->phonenumber),
             'amount' => $this->total,
             'currency' => $this->customerCurrency['code'],
             'metadata' => ['invoice_id' => $invoiceId],
@@ -149,6 +149,22 @@ abstract class BasePaymentHandler
             'message' => $customMessage ?? $code->message(),
             'errorCode' => $customMessage ?? $code->value,
         ];
+    }
+
+    private function formatPhoneNumber(string $phoneNumber): string
+    {
+        $phoneNumber = trim($phoneNumber);
+
+        // Handle WHMCS default format: +CountryCode.SubscriberNumber
+        if (strpos($phoneNumber, '.') !== false && strpos($phoneNumber, '+') === 0) {
+            [$country, $subscriber] = explode('.', $phoneNumber, 2);
+            $lastDigit = substr($country, -1);
+            $subscriber = preg_replace('/\D/', '', $subscriber);
+
+            return $lastDigit . $subscriber;
+        }
+
+        return preg_replace('/\D/', '', $phoneNumber);
     }
 
     private function fetchInvoice(): array
