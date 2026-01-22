@@ -11,20 +11,24 @@
     "features": [
       "Checkout with UddoktaPay for a faster checkout & payment experience",
       "Additional fees",
-      "WHMCS 8 Support"
+      "WHMCS 8.13+ Support"
     ]
   },
   "logo": {
     "filename": "logo.png"
   },
   "support": {
-    "homepage": "https:\/\/www.uddoktapay.com\/",
-    "docs_url": "https:\/\/uddoktapay.readme.io\/"
+    "homepage": "https://www.uddoktapay.com/",
+    "docs_url": "https://uddoktapay.readme.io/"
   },
   "authors": [
     {
       "name": "UddoktaPay Team",
-      "homepage": "https:\/\/uddoktapay.com\/"
+      "homepage": "https://uddoktapay.com/"
     }
-  ]
+  ],
+  "require": {
+    "php": ">=8.1",
+    "whmcs": ">=8.13"
+  }
 }

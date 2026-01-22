@@ -11,11 +11,11 @@ use WHMCS\Module\Gateway\UddoktaPay\Enums\GatewayType;
 use WHMCS\Module\Gateway\UddoktaPay\Enums\PaymentAction;
 use WHMCS\Module\Gateway\UddoktaPay\Handler\BasePaymentHandler;
 
-final class UddoktaPayHandler extends BasePaymentHandler
+final class UddoktaPayBankHandler extends BasePaymentHandler
 {
     protected function getGatewayType(): GatewayType
     {
-        return GatewayType::DEFAULT;
+        return GatewayType::BANK;
     }
 
     public static function init(): self
@@ -24,7 +24,7 @@ final class UddoktaPayHandler extends BasePaymentHandler
     }
 }
 
-$handler = UddoktaPayHandler::init();
+$handler = UddoktaPayBankHandler::init();
 
 if (!$handler->isActive) {
     exit('The gateway is unavailable.');
