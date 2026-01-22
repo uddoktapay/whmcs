@@ -6,6 +6,7 @@ namespace WHMCS\Module\Gateway\UddoktaPay\Http;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\RequestOptions;
 use WHMCS\Module\Gateway\UddoktaPay\Exception\UddoktaPayException;
 
@@ -139,8 +140,10 @@ final class UddoktaPayAPI
             }
 
             return $decodedResponse;
+        } catch (RequestException $e) {
+            throw UddoktaPayException::make($this->extractErrorMessage($e));
         } catch (GuzzleException $e) {
-            throw UddoktaPayException::make('HTTP Request failed: ' . $e->getMessage());
+            throw UddoktaPayException::make('Request failed: ' . $e->getMessage());
         }
     }
 
@@ -187,5 +190,23 @@ final class UddoktaPayAPI
                 throw UddoktaPayException::make("Invalid {$fieldLabel} format");
             }
         }
+    }
+
+    private function extractErrorMessage(RequestException $e): string
+    {
+        $response = $e->getResponse();
+
+        if ($response === null) {
+            return 'Connection failed: ' . $e->getMessage();
+        }
+
+        $body = (string) $response->getBody();
+        $data = json_decode($body, true);
+
+        if (json_last_error() === JSON_ERROR_NONE && isset($data['message'])) {
+            return $data['message'];
+        }
+
+        return 'Request failed with status ' . $response->getStatusCode();
     }
 }

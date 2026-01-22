@@ -76,7 +76,7 @@ abstract class BasePaymentHandler
                 'payment_url' => $this->api->initPayment($fields, $this->getGatewayType()->value),
             ];
         } catch (UddoktaPayException $e) {
-            return $this->errorResponse(ErrorCode::INVALID_RESPONSE);
+            return $this->errorResponse(ErrorCode::INVALID_RESPONSE, $e->getMessage());
         } catch (\Exception) {
             return $this->errorResponse(ErrorCode::SOMETHING_WRONG);
         }
@@ -91,7 +91,7 @@ abstract class BasePaymentHandler
 
             return $this->handlePaymentResult($payment);
         } catch (UddoktaPayException $e) {
-            return $this->errorResponse(ErrorCode::INVALID_RESPONSE);
+            return $this->errorResponse(ErrorCode::INVALID_RESPONSE, $e->getMessage());
         } catch (\Exception) {
             return $this->errorResponse(ErrorCode::SOMETHING_WRONG);
         }
@@ -142,12 +142,12 @@ abstract class BasePaymentHandler
         return $this->errorResponse(ErrorCode::PENDING_VERIFICATION);
     }
 
-    protected function errorResponse(ErrorCode $code): array
+    protected function errorResponse(ErrorCode $code, ?string $customMessage = null): array
     {
         return [
             'status' => 'error',
-            'message' => $code->message(),
-            'errorCode' => $code->value,
+            'message' => $customMessage ?? $code->message(),
+            'errorCode' => $customMessage ?? $code->value,
         ];
     }
 

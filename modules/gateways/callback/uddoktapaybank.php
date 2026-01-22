@@ -37,7 +37,7 @@ match ($action) {
     PaymentAction::INIT => handleInit($handler, $invoiceId),
     PaymentAction::VERIFY => handleVerify($handler, $invoiceId),
     PaymentAction::IPN => handleIpn($handler),
-    default => redirectWithError($invoiceId, ErrorCode::SOMETHING_WRONG),
+    default => redirectWithError($invoiceId, ErrorCode::SOMETHING_WRONG->value),
 };
 
 function handleInit(BasePaymentHandler $handler, int $invoiceId): never
@@ -49,7 +49,7 @@ function handleInit(BasePaymentHandler $handler, int $invoiceId): never
         exit;
     }
 
-    redirectWithError($invoiceId, ErrorCode::tryFrom($response['errorCode']) ?? ErrorCode::SOMETHING_WRONG);
+    redirectWithError($invoiceId, (string) $response['errorCode']);
 }
 
 function handleVerify(BasePaymentHandler $handler, int $invoiceId): never
@@ -62,7 +62,7 @@ function handleVerify(BasePaymentHandler $handler, int $invoiceId): never
         exit;
     }
 
-    redirectWithError($invoiceId, ErrorCode::tryFrom($response['errorCode']) ?? ErrorCode::SOMETHING_WRONG);
+    redirectWithError($invoiceId, (string) $response['errorCode']);
 }
 
 function handleIpn(BasePaymentHandler $handler): never
@@ -72,8 +72,8 @@ function handleIpn(BasePaymentHandler $handler): never
     exit;
 }
 
-function redirectWithError(int $invoiceId, ErrorCode $error): never
+function redirectWithError(int $invoiceId, string $error): never
 {
-    redirSystemURL("id={$invoiceId}&error={$error->value}", 'viewinvoice.php');
+    redirSystemURL("id={$invoiceId}&error={$error}", 'viewinvoice.php');
     exit;
 }
