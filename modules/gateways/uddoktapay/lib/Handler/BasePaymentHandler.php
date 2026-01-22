@@ -10,6 +10,7 @@ use WHMCS\Config\Setting;
 use WHMCS\Database\Capsule;
 use WHMCS\Module\Gateway\UddoktaPay\Enums\ErrorCode;
 use WHMCS\Module\Gateway\UddoktaPay\Enums\GatewayType;
+use WHMCS\Module\Gateway\UddoktaPay\Enums\PaymentAction;
 use WHMCS\Module\Gateway\UddoktaPay\Enums\PaymentStatus;
 use WHMCS\Module\Gateway\UddoktaPay\Exception\UddoktaPayException;
 use WHMCS\Module\Gateway\UddoktaPay\Http\UddoktaPayAPI;
@@ -49,6 +50,61 @@ abstract class BasePaymentHandler
         $this->due = (float) $this->invoice['balance'];
         $this->fee = 0.0;
         $this->total = $this->due + $this->fee;
+    }
+
+    public function run(): never
+    {
+        if (!$this->isActive) {
+            exit('The gateway is unavailable.');
+        }
+
+        $action = PaymentAction::tryFrom($this->request->get('action') ?? '');
+        $invoiceId = (int) $this->request->get('id');
+
+        match ($action) {
+            PaymentAction::INIT => $this->handleInit($invoiceId),
+            PaymentAction::VERIFY => $this->handleVerify($invoiceId),
+            PaymentAction::IPN => $this->handleIpn(),
+            default => $this->redirectWithError($invoiceId, ErrorCode::SOMETHING_WRONG->value),
+        };
+    }
+
+    protected function handleInit(int $invoiceId): never
+    {
+        $response = $this->createPayment();
+
+        if ($response['status'] === 'success') {
+            header('Location: ' . $response['payment_url']);
+            exit;
+        }
+
+        $this->redirectWithError($invoiceId, (string) $response['errorCode']);
+    }
+
+    protected function handleVerify(int $invoiceId): never
+    {
+        $paymentInvoiceId = $this->request->get('invoice_id') ?? '';
+        $response = $this->processPayment($paymentInvoiceId);
+
+        if ($response['status'] === 'success') {
+            redirSystemURL("id={$invoiceId}", 'viewinvoice.php');
+            exit;
+        }
+
+        $this->redirectWithError($invoiceId, (string) $response['errorCode']);
+    }
+
+    protected function handleIpn(): never
+    {
+        $invoiceId = $this->request->get('invoice_id') ?? '';
+        $this->processPayment($invoiceId, isIpn: true);
+        exit;
+    }
+
+    protected function redirectWithError(int $invoiceId, string $error): never
+    {
+        redirSystemURL("id={$invoiceId}&error={$error}", 'viewinvoice.php');
+        exit;
     }
 
     public function createPayment(): array
