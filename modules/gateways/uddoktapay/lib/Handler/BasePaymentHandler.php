@@ -234,7 +234,9 @@ abstract class BasePaymentHandler
             ->where('id', '=', $this->invoice['userid'])
             ->value('currency');
 
-        return getCurrency($currencyId);
+        return (array) Capsule::table('tblcurrencies')
+            ->where('id', '=', $currencyId)
+            ->first();
     }
 
     private function fetchClient(): object
