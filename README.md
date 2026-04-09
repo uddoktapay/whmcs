@@ -11,12 +11,12 @@ Integrate UddoktaPay payment solutions with WHMCS. Supports multiple payment typ
 
 ## Requirements
 
-- PHP 8.1+
+- PHP 7.4+
 - WHMCS 8+
 
 ## Installation
 
-1. Download [UddoktaPay.zip](https://github.com/UddoktaPay/WHMCS/releases/download/3.0.1/UddoktaPay.zip) from the **Releases** section.
+1. Download [UddoktaPay.zip](https://github.com/UddoktaPay/WHMCS/releases/download/2.1.0/UddoktaPay.zip) from the **Releases** section.
 2. Extract to your WHMCS installation directory.
 3. Go to `WHMCS > System Settings > Payment Gateways`.
 4. Activate the desired UddoktaPay gateway(s).
