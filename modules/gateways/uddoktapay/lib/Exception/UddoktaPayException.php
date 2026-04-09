@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace WHMCS\Module\Gateway\UddoktaPay\Exception;
 
 use Exception;
@@ -9,7 +7,13 @@ use Throwable;
 
 class UddoktaPayException extends Exception
 {
-    public static function make(string $message, int $code = 0, ?Throwable $previous = null): self
+    /**
+     * @param string $message
+     * @param int $code
+     * @param Throwable|null $previous
+     * @return self
+     */
+    public static function make($message, $code = 0, $previous = null)
     {
         return new self($message, $code, $previous);
     }

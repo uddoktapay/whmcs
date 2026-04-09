@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace WHMCS\Module\Gateway\UddoktaPay\Http;
 
 use GuzzleHttp\Client;
@@ -15,21 +13,28 @@ use WHMCS\Module\Gateway\UddoktaPay\Exception\UddoktaPayException;
  */
 final class UddoktaPayAPI
 {
-    private const API_HEADER_KEY = 'RT-UDDOKTAPAY-API-KEY';
-    private const DEFAULT_TIMEOUT = 30;
-    private const CHECKOUT_V2 = 'checkout-v2';
-    private const VERIFY_ENDPOINT = 'verify-payment';
+    const API_HEADER_KEY = 'RT-UDDOKTAPAY-API-KEY';
+    const DEFAULT_TIMEOUT = 30;
+    const CHECKOUT_V2 = 'checkout-v2';
+    const VERIFY_ENDPOINT = 'verify-payment';
 
-    private readonly string $apiKey;
-    private readonly string $apiBaseURL;
-    private readonly Client $client;
+    /** @var string */
+    private $apiKey;
 
-    private function __construct(
-        string $apiKey,
-        string $apiBaseURL,
-        int $timeout = self::DEFAULT_TIMEOUT,
-        bool $verifySsl = true
-    ) {
+    /** @var string */
+    private $apiBaseURL;
+
+    /** @var Client */
+    private $client;
+
+    /**
+     * @param string $apiKey
+     * @param string $apiBaseURL
+     * @param int $timeout
+     * @param bool $verifySsl
+     */
+    private function __construct($apiKey, $apiBaseURL, $timeout = self::DEFAULT_TIMEOUT, $verifySsl = true)
+    {
         $trimmedApiKey = trim($apiKey);
 
         if ($trimmedApiKey === '') {
@@ -51,26 +56,42 @@ final class UddoktaPayAPI
         ]);
     }
 
-    public static function make(
-        string $apiKey,
-        string $apiBaseURL,
-        int $timeout = self::DEFAULT_TIMEOUT,
-        bool $verifySsl = true
-    ): self {
+    /**
+     * @param string $apiKey
+     * @param string $apiBaseURL
+     * @param int $timeout
+     * @param bool $verifySsl
+     * @return self
+     */
+    public static function make($apiKey, $apiBaseURL, $timeout = self::DEFAULT_TIMEOUT, $verifySsl = true)
+    {
         return new self($apiKey, $apiBaseURL, $timeout, $verifySsl);
     }
 
-    public function initPayment(array $requestData, string $apiType = self::CHECKOUT_V2): string
+    /**
+     * @param array $requestData
+     * @param string $apiType
+     * @return string
+     */
+    public function initPayment(array $requestData, $apiType = self::CHECKOUT_V2)
     {
         $this->validatePaymentData($requestData);
 
         $response = $this->sendRequest('POST', $apiType, $requestData);
 
-        return $response['payment_url']
-            ?? throw UddoktaPayException::make($response['message'] ?? 'Payment initialization failed');
+        if (!isset($response['payment_url'])) {
+            $message = isset($response['message']) ? $response['message'] : 'Payment initialization failed';
+            throw UddoktaPayException::make($message);
+        }
+
+        return $response['payment_url'];
     }
 
-    public function verifyPayment(string $invoiceId): array
+    /**
+     * @param string $invoiceId
+     * @return array
+     */
+    public function verifyPayment($invoiceId)
     {
         if (trim($invoiceId) === '') {
             throw UddoktaPayException::make('Invoice ID cannot be empty');
@@ -79,10 +100,13 @@ final class UddoktaPayAPI
         return $this->sendRequest('POST', self::VERIFY_ENDPOINT, ['invoice_id' => $invoiceId]);
     }
 
-    public function executePayment(): array
+    /**
+     * @return array
+     */
+    public function executePayment()
     {
         $headerKey = 'HTTP_' . str_replace('-', '_', self::API_HEADER_KEY);
-        $headerApi = $_SERVER[$headerKey] ?? null;
+        $headerApi = isset($_SERVER[$headerKey]) ? $_SERVER[$headerKey] : null;
 
         if ($headerApi === null) {
             throw UddoktaPayException::make('Missing API key in request header');
@@ -104,12 +128,18 @@ final class UddoktaPayAPI
             throw UddoktaPayException::make('Invalid JSON in IPN response: ' . json_last_error_msg());
         }
 
-        $invoiceId = $data['invoice_id'] ?? throw UddoktaPayException::make('Invoice ID missing in IPN data');
+        if (!isset($data['invoice_id'])) {
+            throw UddoktaPayException::make('Invoice ID missing in IPN data');
+        }
 
-        return $this->verifyPayment($invoiceId);
+        return $this->verifyPayment($data['invoice_id']);
     }
 
-    private function normalizeBaseURL(string $apiBaseURL): string
+    /**
+     * @param string $apiBaseURL
+     * @return string
+     */
+    private function normalizeBaseURL($apiBaseURL)
     {
         if ($apiBaseURL === '') {
             throw UddoktaPayException::make('API Base URL cannot be empty');
@@ -125,7 +155,13 @@ final class UddoktaPayAPI
         return $baseURL;
     }
 
-    private function sendRequest(string $method, string $endpoint, array $data): array
+    /**
+     * @param string $method
+     * @param string $endpoint
+     * @param array $data
+     * @return array
+     */
+    private function sendRequest($method, $endpoint, array $data)
     {
         try {
             $response = $this->client->request($method, $endpoint, [
@@ -147,7 +183,11 @@ final class UddoktaPayAPI
         }
     }
 
-    private function validatePaymentData(array $data): void
+    /**
+     * @param array $data
+     * @return void
+     */
+    private function validatePaymentData(array $data)
     {
         $requiredFields = ['full_name', 'email', 'amount', 'metadata'];
 
@@ -180,7 +220,11 @@ final class UddoktaPayAPI
         $this->validateOptionalUrls($data);
     }
 
-    private function validateOptionalUrls(array $data): void
+    /**
+     * @param array $data
+     * @return void
+     */
+    private function validateOptionalUrls(array $data)
     {
         $urlFields = ['redirect_url', 'cancel_url', 'webhook_url'];
 
@@ -192,7 +236,11 @@ final class UddoktaPayAPI
         }
     }
 
-    private function extractErrorMessage(RequestException $e): string
+    /**
+     * @param RequestException $e
+     * @return string
+     */
+    private function extractErrorMessage(RequestException $e)
     {
         $response = $e->getResponse();
 

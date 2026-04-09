@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 if (!defined('WHMCS')) {
     exit('This file cannot be accessed directly');
 }
@@ -9,12 +7,12 @@ if (!defined('WHMCS')) {
 use WHMCS\Module\Gateway\UddoktaPay\Enums\GatewayType;
 use WHMCS\Module\Gateway\UddoktaPay\Handler\GatewayHelper;
 
-function uddoktapayglobal_config(): array
+function uddoktapayglobal_config()
 {
     return GatewayHelper::getBaseConfig(GatewayType::GLOBAL);
 }
 
-function uddoktapayglobal_link(array $params): string
+function uddoktapayglobal_link(array $params)
 {
     return GatewayHelper::handleLink($params, GatewayType::GLOBAL);
 }

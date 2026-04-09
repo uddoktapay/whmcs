@@ -1,12 +1,28 @@
 <?php
 
-declare(strict_types=1);
-
 namespace WHMCS\Module\Gateway\UddoktaPay\Enums;
 
-enum PaymentAction: string
+final class PaymentAction
 {
-    case INIT = 'init';
-    case VERIFY = 'verify';
-    case IPN = 'ipn';
+    const INIT = 'init';
+    const VERIFY = 'verify';
+    const IPN = 'ipn';
+
+    /**
+     * @var array<string, string>
+     */
+    private static $validValues = [
+        self::INIT => self::INIT,
+        self::VERIFY => self::VERIFY,
+        self::IPN => self::IPN,
+    ];
+
+    /**
+     * @param string $value
+     * @return string|null
+     */
+    public static function tryFrom($value)
+    {
+        return isset(self::$validValues[$value]) ? self::$validValues[$value] : null;
+    }
 }

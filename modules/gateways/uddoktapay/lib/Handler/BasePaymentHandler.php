@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace WHMCS\Module\Gateway\UddoktaPay\Handler;
 
 use Carbon\Carbon;
@@ -17,25 +15,48 @@ use WHMCS\Module\Gateway\UddoktaPay\Http\UddoktaPayAPI;
 
 abstract class BasePaymentHandler
 {
-    protected readonly string $gatewayModuleName;
-    protected readonly array $gatewayParams;
-    protected readonly array $invoice;
-    protected readonly object $clientDetails;
-    protected readonly array $customerCurrency;
-    protected readonly float $due;
-    protected readonly float $fee;
-    protected readonly float $total;
-    protected readonly UddoktaPayAPI $api;
+    /** @var string */
+    protected $gatewayModuleName;
 
-    public readonly bool $isActive;
-    public readonly Request $request;
+    /** @var array */
+    protected $gatewayParams;
 
-    abstract protected function getGatewayType(): GatewayType;
+    /** @var array */
+    protected $invoice;
+
+    /** @var object */
+    protected $clientDetails;
+
+    /** @var array */
+    protected $customerCurrency;
+
+    /** @var float */
+    protected $due;
+
+    /** @var float */
+    protected $fee;
+
+    /** @var float */
+    protected $total;
+
+    /** @var UddoktaPayAPI */
+    protected $api;
+
+    /** @var bool */
+    public $isActive;
+
+    /** @var Request */
+    public $request;
+
+    /**
+     * @return string
+     */
+    abstract protected function getGatewayType();
 
     protected function __construct()
     {
         $this->request = Request::createFromGlobals();
-        $this->gatewayModuleName = $this->getGatewayType()->moduleName();
+        $this->gatewayModuleName = GatewayType::moduleName($this->getGatewayType());
         $this->gatewayParams = getGatewayVariables($this->gatewayModuleName);
         $this->isActive = !empty($this->gatewayParams['type']);
 
@@ -52,24 +73,35 @@ abstract class BasePaymentHandler
         $this->total = $this->due + $this->fee;
     }
 
-    public function run(): never
+    /**
+     * @return void
+     */
+    public function run()
     {
         if (!$this->isActive) {
             exit('The gateway is unavailable.');
         }
 
-        $action = PaymentAction::tryFrom($this->request->get('action') ?? '');
+        $actionValue = $this->request->get('action');
+        $action = PaymentAction::tryFrom($actionValue !== null ? $actionValue : '');
         $invoiceId = (int) $this->request->get('id');
 
-        match ($action) {
-            PaymentAction::INIT => $this->handleInit($invoiceId),
-            PaymentAction::VERIFY => $this->handleVerify($invoiceId),
-            PaymentAction::IPN => $this->handleIpn(),
-            default => $this->redirectWithError($invoiceId, ErrorCode::SOMETHING_WRONG->value),
-        };
+        if ($action === PaymentAction::INIT) {
+            $this->handleInit($invoiceId);
+        } elseif ($action === PaymentAction::VERIFY) {
+            $this->handleVerify($invoiceId);
+        } elseif ($action === PaymentAction::IPN) {
+            $this->handleIpn();
+        } else {
+            $this->redirectWithError($invoiceId, ErrorCode::SOMETHING_WRONG);
+        }
     }
 
-    protected function handleInit(int $invoiceId): never
+    /**
+     * @param int $invoiceId
+     * @return void
+     */
+    protected function handleInit($invoiceId)
     {
         $response = $this->createPayment();
 
@@ -81,10 +113,14 @@ abstract class BasePaymentHandler
         $this->redirectWithError($invoiceId, (string) $response['errorCode']);
     }
 
-    protected function handleVerify(int $invoiceId): never
+    /**
+     * @param int $invoiceId
+     * @return void
+     */
+    protected function handleVerify($invoiceId)
     {
-        $paymentInvoiceId = $this->request->get('invoice_id') ?? '';
-        $response = $this->processPayment($paymentInvoiceId);
+        $paymentInvoiceId = $this->request->get('invoice_id');
+        $response = $this->processPayment($paymentInvoiceId !== null ? $paymentInvoiceId : '');
 
         if ($response['status'] === 'success') {
             redirSystemURL("id={$invoiceId}", 'viewinvoice.php');
@@ -94,20 +130,31 @@ abstract class BasePaymentHandler
         $this->redirectWithError($invoiceId, (string) $response['errorCode']);
     }
 
-    protected function handleIpn(): never
+    /**
+     * @return void
+     */
+    protected function handleIpn()
     {
-        $invoiceId = $this->request->get('invoice_id') ?? '';
-        $this->processPayment($invoiceId, isIpn: true);
+        $invoiceId = $this->request->get('invoice_id');
+        $this->processPayment($invoiceId !== null ? $invoiceId : '', true);
         exit;
     }
 
-    protected function redirectWithError(int $invoiceId, string $error): never
+    /**
+     * @param int $invoiceId
+     * @param string $error
+     * @return void
+     */
+    protected function redirectWithError($invoiceId, $error)
     {
         redirSystemURL("id={$invoiceId}&error={$error}", 'viewinvoice.php');
         exit;
     }
 
-    public function createPayment(): array
+    /**
+     * @return array
+     */
+    public function createPayment()
     {
         $systemUrl = Setting::getValue('SystemURL');
         $invoiceId = $this->invoice['invoiceid'];
@@ -129,16 +176,21 @@ abstract class BasePaymentHandler
         try {
             return [
                 'status' => 'success',
-                'payment_url' => $this->api->initPayment($fields, $this->getGatewayType()->value),
+                'payment_url' => $this->api->initPayment($fields, $this->getGatewayType()),
             ];
         } catch (UddoktaPayException $e) {
             return $this->errorResponse(ErrorCode::INVALID_RESPONSE, $e->getMessage());
-        } catch (\Exception) {
+        } catch (\Exception $e) {
             return $this->errorResponse(ErrorCode::SOMETHING_WRONG);
         }
     }
 
-    public function processPayment(string $invoiceId, bool $isIpn = false): array
+    /**
+     * @param string $invoiceId
+     * @param bool $isIpn
+     * @return array
+     */
+    public function processPayment($invoiceId, $isIpn = false)
     {
         try {
             $payment = $isIpn
@@ -148,31 +200,41 @@ abstract class BasePaymentHandler
             return $this->handlePaymentResult($payment);
         } catch (UddoktaPayException $e) {
             return $this->errorResponse(ErrorCode::INVALID_RESPONSE, $e->getMessage());
-        } catch (\Exception) {
+        } catch (\Exception $e) {
             return $this->errorResponse(ErrorCode::SOMETHING_WRONG);
         }
     }
 
-    private function handlePaymentResult(array $payment): array
+    /**
+     * @param array $payment
+     * @return array
+     */
+    private function handlePaymentResult(array $payment)
     {
-        $status = PaymentStatus::tryFrom($payment['status'] ?? '');
+        $status = PaymentStatus::tryFrom(isset($payment['status']) ? $payment['status'] : '');
 
-        return match ($status) {
-            PaymentStatus::COMPLETED => $this->handleCompletedPayment($payment),
-            PaymentStatus::PENDING => $this->handlePendingPayment(),
-            default => $this->errorResponse(ErrorCode::INVALID_RESPONSE),
-        };
+        if ($status === PaymentStatus::COMPLETED) {
+            return $this->handleCompletedPayment($payment);
+        } elseif ($status === PaymentStatus::PENDING) {
+            return $this->handlePendingPayment();
+        }
+
+        return $this->errorResponse(ErrorCode::INVALID_RESPONSE);
     }
 
-    private function handleCompletedPayment(array $payment): array
+    /**
+     * @param array $payment
+     * @return array
+     */
+    private function handleCompletedPayment(array $payment)
     {
         $transactionId = $payment['transaction_id'];
 
         if ($this->transactionExists($transactionId)) {
             return [
                 'status' => 'success',
-                'message' => ErrorCode::TRANSACTION_USED->message(),
-                'errorCode' => ErrorCode::TRANSACTION_USED->value,
+                'message' => ErrorCode::message(ErrorCode::TRANSACTION_USED),
+                'errorCode' => ErrorCode::TRANSACTION_USED,
             ];
         }
 
@@ -193,27 +255,41 @@ abstract class BasePaymentHandler
         ];
     }
 
-    private function handlePendingPayment(): array
+    /**
+     * @return array
+     */
+    private function handlePendingPayment()
     {
         return $this->errorResponse(ErrorCode::PENDING_VERIFICATION);
     }
 
-    protected function errorResponse(ErrorCode $code, ?string $customMessage = null): array
+    /**
+     * @param string $code
+     * @param string|null $customMessage
+     * @return array
+     */
+    protected function errorResponse($code, $customMessage = null)
     {
         return [
             'status' => 'error',
-            'message' => $customMessage ?? $code->message(),
-            'errorCode' => $customMessage ?? $code->value,
+            'message' => $customMessage !== null ? $customMessage : ErrorCode::message($code),
+            'errorCode' => $customMessage !== null ? $customMessage : $code,
         ];
     }
 
-    private function formatPhoneNumber(string $phoneNumber): string
+    /**
+     * @param string $phoneNumber
+     * @return string
+     */
+    private function formatPhoneNumber($phoneNumber)
     {
         $phoneNumber = trim($phoneNumber);
 
         // Handle WHMCS default format: +CountryCode.SubscriberNumber
         if (strpos($phoneNumber, '.') !== false && strpos($phoneNumber, '+') === 0) {
-            [$country, $subscriber] = explode('.', $phoneNumber, 2);
+            $parts = explode('.', $phoneNumber, 2);
+            $country = $parts[0];
+            $subscriber = $parts[1];
             $lastDigit = substr($country, -1);
             $subscriber = preg_replace('/\D/', '', $subscriber);
 
@@ -223,12 +299,18 @@ abstract class BasePaymentHandler
         return preg_replace('/\D/', '', $phoneNumber);
     }
 
-    private function fetchInvoice(): array
+    /**
+     * @return array
+     */
+    private function fetchInvoice()
     {
         return localAPI('GetInvoice', ['invoiceid' => $this->request->get('id')]);
     }
 
-    private function fetchCurrency(): array
+    /**
+     * @return array
+     */
+    private function fetchCurrency()
     {
         $currencyId = Capsule::table('tblclients')
             ->where('id', '=', $this->invoice['userid'])
@@ -239,21 +321,32 @@ abstract class BasePaymentHandler
             ->first();
     }
 
-    private function fetchClient(): object
+    /**
+     * @return object
+     */
+    private function fetchClient()
     {
         return Capsule::table('tblclients')
             ->where('id', '=', $this->invoice['userid'])
             ->first();
     }
 
-    private function transactionExists(string $transactionId): bool
+    /**
+     * @param string $transactionId
+     * @return bool
+     */
+    private function transactionExists($transactionId)
     {
         $result = localAPI('GetTransactions', ['transid' => $transactionId]);
 
-        return ($result['totalresults'] ?? 0) > 0;
+        return (isset($result['totalresults']) ? $result['totalresults'] : 0) > 0;
     }
 
-    private function logTransaction(array $payload): void
+    /**
+     * @param array $payload
+     * @return void
+     */
+    private function logTransaction(array $payload)
     {
         logTransaction(
             $this->gatewayParams['name'],
@@ -265,7 +358,11 @@ abstract class BasePaymentHandler
         );
     }
 
-    private function addTransaction(string $transactionId): array
+    /**
+     * @param string $transactionId
+     * @return array
+     */
+    private function addTransaction($transactionId)
     {
         $fields = [
             'invoiceid' => $this->invoice['invoiceid'],
