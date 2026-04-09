@@ -1,16 +1,16 @@
 {
     "schema": "1.0",
     "type": "whmcs-gateways",
-    "name": "uddoktapay",
+    "name": "uddoktapaymfs",
     "license": "MIT",
     "category": "payments",
     "description": {
-        "name": "UddoktaPay",
-        "tagline": "Simplify Your Payment Management",
-        "long": "UddoktaPay offers a range of payment automation solutions for small entrepreneurs in Bangladesh.",
+        "name": "UddoktaPay MFS",
+        "tagline": "Mobile Financial Services Payment Gateway",
+        "long": "UddoktaPay MFS offers mobile financial services payment gateway for bKash, Nagad, Rocket, and other MFS providers in Bangladesh.",
         "features": [
-            "Checkout with UddoktaPay for a faster checkout & payment experience",
-            "Additional fees",
+            "Checkout with UddoktaPay MFS for mobile financial services",
+            "Support for bKash, Nagad, Rocket and more",
             "WHMCS 8+ Support"
         ]
     },

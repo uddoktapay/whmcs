@@ -1,16 +1,16 @@
 {
     "schema": "1.0",
     "type": "whmcs-gateways",
-    "name": "uddoktapay",
+    "name": "uddoktapayglobal",
     "license": "MIT",
     "category": "payments",
     "description": {
-        "name": "UddoktaPay",
-        "tagline": "Simplify Your Payment Management",
-        "long": "UddoktaPay offers a range of payment automation solutions for small entrepreneurs in Bangladesh.",
+        "name": "UddoktaPay Global",
+        "tagline": "Global Payment Gateway",
+        "long": "UddoktaPay Global offers international payment gateway supporting cards, PayPal, and other global payment methods.",
         "features": [
-            "Checkout with UddoktaPay for a faster checkout & payment experience",
-            "Additional fees",
+            "Checkout with UddoktaPay Global for international payments",
+            "Support for Visa, Mastercard, PayPal and more",
             "WHMCS 8+ Support"
         ]
     },

@@ -7,12 +7,12 @@ if (!defined('WHMCS')) {
 use WHMCS\Module\Gateway\UddoktaPay\Enums\GatewayType;
 use WHMCS\Module\Gateway\UddoktaPay\Handler\GatewayHelper;
 
-function uddoktapay_config()
+function uddoktapaymfs_config()
 {
-    return GatewayHelper::getBaseConfig(GatewayType::DEFAULT);
+    return GatewayHelper::getBaseConfig(GatewayType::MFS);
 }
 
-function uddoktapay_link(array $params)
+function uddoktapaymfs_link(array $params)
 {
-    return GatewayHelper::handleLink($params, GatewayType::DEFAULT);
+    return GatewayHelper::handleLink($params, GatewayType::MFS);
 }

@@ -1,31 +1,29 @@
-# UddoktaPay WHMCS Integration
+# UddoktaPay WHMCS Payment Gateway
 
-The UddoktaPay Checkout module allows you to effortlessly integrate payment solutions with the WHMCS automation platform.
+Integrate UddoktaPay payment solutions with WHMCS. Supports multiple payment types including MFS (bKash, Nagad), Bank transfers, and Global payments.
 
-## Installation
+## Features
 
-To install the UddoktaPay Checkout module, follow these steps:
-
-1. Download [UddoktaPay.zip](https://github.com/uddoktapay/WHMCS/releases/download/2.0.1/UddoktaPay.zip) file from the **Release** section of this repository.
-
-2. Upload the `UddoktaPay.zip` file to your WHMCS installation.
-
-3. Extract the contents of the ZIP file within your WHMCS installation directory.
+- **UddoktaPay** - Default checkout for all gateways
+- **UddoktaPay MFS** - Mobile financial services (bKash, Nagad, Rocket)
+- **UddoktaPay Bank** - Local bank transfers
+- **UddoktaPay Global** - International payments (Visa, Mastercard, PayPal)
 
 ## Requirements
 
-This module supports all major WHMCS versions, including versions 6, 7, and 8.
+- PHP 7.4+
+- WHMCS 8+
 
-## Gateway Activation
+## Installation
 
-To activate the UddoktaPay gateway, follow these steps:
+1. Download [UddoktaPay.zip](https://github.com/UddoktaPay/WHMCS/releases/download/2.1.0/UddoktaPay.zip) from the **Releases** section.
+2. Extract to your WHMCS installation directory.
+3. Go to `WHMCS > System Settings > Payment Gateways`.
+4. Activate the desired UddoktaPay gateway(s).
+5. Configure your API KEY and API URL.
 
-1. Go to `WHMCS > System Settings > Payment Gateways`.
+## License
 
-2. Click on "Visit Apps & Integrations."
+This software is proprietary. See [LICENSE](LICENSE) for details.
 
-3. Find and select "UddoktaPay."
-
-4. Click on "Activate."
-
-Now, you can set up your UddoktaPay API KEY and API URL, and you're ready to enjoy seamless payment integration.
+© 2026 UddoktaPay. All rights reserved.

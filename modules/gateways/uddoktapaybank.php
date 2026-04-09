@@ -7,12 +7,12 @@ if (!defined('WHMCS')) {
 use WHMCS\Module\Gateway\UddoktaPay\Enums\GatewayType;
 use WHMCS\Module\Gateway\UddoktaPay\Handler\GatewayHelper;
 
-function uddoktapay_config()
+function uddoktapaybank_config()
 {
-    return GatewayHelper::getBaseConfig(GatewayType::DEFAULT);
+    return GatewayHelper::getBaseConfig(GatewayType::BANK);
 }
 
-function uddoktapay_link(array $params)
+function uddoktapaybank_link(array $params)
 {
-    return GatewayHelper::handleLink($params, GatewayType::DEFAULT);
+    return GatewayHelper::handleLink($params, GatewayType::BANK);
 }

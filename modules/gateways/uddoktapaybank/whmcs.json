@@ -1,16 +1,16 @@
 {
     "schema": "1.0",
     "type": "whmcs-gateways",
-    "name": "uddoktapay",
+    "name": "uddoktapaybank",
     "license": "MIT",
     "category": "payments",
     "description": {
-        "name": "UddoktaPay",
-        "tagline": "Simplify Your Payment Management",
-        "long": "UddoktaPay offers a range of payment automation solutions for small entrepreneurs in Bangladesh.",
+        "name": "UddoktaPay Bank",
+        "tagline": "Bank Payment Gateway",
+        "long": "UddoktaPay Bank offers direct bank payment gateway for local bank transfers and online banking in Bangladesh.",
         "features": [
-            "Checkout with UddoktaPay for a faster checkout & payment experience",
-            "Additional fees",
+            "Checkout with UddoktaPay Bank for bank transfers",
+            "Support for local Bangladeshi banks",
             "WHMCS 8+ Support"
         ]
     },
