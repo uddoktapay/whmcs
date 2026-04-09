@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - '*'
+      - '2.*'
 
 jobs:
   build:
@@ -13,7 +13,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: 2.x
 
       - name: Get version from tag
         id: version
@@ -29,7 +29,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add README.md
           git diff --staged --quiet || git commit -m "chore: update download link to ${{ steps.version.outputs.VERSION }}"
-          git push origin main
+          git push origin 2.x
 
       - name: Create release zip
         run: |
